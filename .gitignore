@@ -3,19 +3,10 @@
 *.class
 *.war
 *.ear
-hs_err_pid*
+target/
 
 ## Robovm
 /ios/robovm-build/
-
-## GWT
-/html/war/
-/html/gwt-unitCache/
-.apt_generated/
-.gwt/
-gwt-unitCache/
-www-test/
-.gwt-tmp/
 
 ## Android Studio and Intellij and Android in general
 /android/libs/armeabi/
@@ -28,6 +19,7 @@ www-test/
 *.ipr
 *.iws
 *.iml
+*.log
 /android/out/
 com_crashlytics_export_strings.xml
 
@@ -109,17 +101,4 @@ gradle-app.setting
 /ios/build/
 /ios-moe/build/
 
-## OS Specific
-.DS_Store
-Thumbs.db
 
-## iOS
-/ios/xcode/*.xcodeproj/*
-!/ios/xcode/*.xcodeproj/xcshareddata
-!/ios/xcode/*.xcodeproj/project.pbxproj
-/ios/xcode/native/
-
-/ios-moe/xcode/*.xcodeproj/*
-!/ios-moe/xcode/*.xcodeproj/xcshareddata
-!/ios-moe/xcode/*.xcodeproj/project.pbxproj
-/ios-moe/xcode/native/

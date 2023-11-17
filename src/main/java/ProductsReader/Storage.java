@@ -7,17 +7,17 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-public class Database {
+public class Storage {
 
-  Map<String, ProductInfo> nameToProductInfo = new HashMap<>();
-  Map<String, List<String>> dateToCheck = new HashMap<>();
+  private Map<String, ProductInfo> nameToProductInfo = new HashMap<>();
+  private Map<String, List<String>> dateToCheck = new HashMap<>();
 
-  private static final Database database = new Database();
+  private static final Storage STORAGE = new Storage();
 
-  private Database() {}
+  private Storage() {}
 
-  public static Database getInstance() {
-    return database;
+  public static Storage getInstance() {
+    return STORAGE;
   }
 
   public void updateProductItem(String productName, int productCost) {
@@ -44,8 +44,9 @@ public class Database {
         .collect(Collectors.toList());
   }
 
-  public void clearProducts() {
+  public void clearStorage() {
     nameToProductInfo.clear();
+    dateToCheck.clear();
   }
 
   public int countTotalCost() {
@@ -54,5 +55,13 @@ public class Database {
         .map(ProductInfo::getTotalCost)
         .mapToInt(num -> num)
         .sum();
+  }
+
+  public Map<String, ProductInfo> getNameToProductInfo() {
+    return new HashMap<>(nameToProductInfo);
+  }
+
+  public HashMap<String, List<String>> getCheksMap() {
+    return new HashMap<>(dateToCheck);
   }
 }

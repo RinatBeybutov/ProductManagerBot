@@ -1,6 +1,6 @@
 package ProductsReader.Reader;
 
-import ProductsReader.Database;
+import ProductsReader.Storage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -12,7 +12,7 @@ public class CustomFileReader implements Reader{
 
   private File baseFolder;
 
-  private Database database = Database.getInstance();
+  private Storage storage = Storage.getInstance();
 
   public CustomFileReader(String baseFolderPath) {
     this.baseFolder = new File(baseFolderPath);
@@ -20,7 +20,7 @@ public class CustomFileReader implements Reader{
 
   @Override
   public void read() {
-    database.clearProducts();
+    storage.clearStorage();
     Arrays.stream(baseFolder.listFiles())
         .filter(file -> file.getName().contains("txt"))
         .forEach(file -> {
@@ -35,7 +35,7 @@ public class CustomFileReader implements Reader{
   private void readFile(String filePath, String fileName) throws IOException {
     try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
       List<String> fileLines = reader.lines().toList();
-      database.addCheckItem(fileName, fileLines);
+      storage.addCheckItem(fileName, fileLines);
       fileLines.forEach(this::parseLine);
     }
   }
@@ -45,7 +45,7 @@ public class CustomFileReader implements Reader{
     if(items.length == 2) {
       String productName = items[0];
       int productCost = Integer.parseInt(items[1]);
-      database.updateProductItem(productName, productCost);
+      storage.updateProductItem(productName, productCost);
     }
   }
 }

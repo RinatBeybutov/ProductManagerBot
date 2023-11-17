@@ -5,7 +5,9 @@ import ProductsReader.Printer.FilePrinter;
 import ProductsReader.Printer.Printer;
 import ProductsReader.Reader.CustomFileReader;
 import ProductsReader.Reader.Reader;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 public class ReaderManager {
@@ -13,7 +15,7 @@ public class ReaderManager {
   private static final String DELIMITER_STRING = "--------------------\n";
   private Reader reader;
   private Printer printer;
-  private Database database = Database.getInstance();
+  private Storage storage = Storage.getInstance();
 
   public ReaderManager(String path) {
     reader = new CustomFileReader(path);
@@ -23,9 +25,19 @@ public class ReaderManager {
 
   public void start() {
     reader.read();
-    var totalCost = database.countTotalCost();
-    var sortedProducts = database.getSortedProducts();
+    var totalCost = storage.countTotalCost();
+    var sortedProducts = storage.getSortedProducts();
     printResults(sortedProducts, totalCost);
+  }
+
+  public Map<String, ProductInfo> getProductsMap() {
+    reader.read();
+    return storage.getNameToProductInfo();
+  }
+
+  public HashMap<String, List<String>> getChecksMap() {
+    reader.read();
+    return storage.getCheksMap();
   }
 
   private void printResults(List<Entry<String, ProductInfo>> sortedProducts, int totalCost) {

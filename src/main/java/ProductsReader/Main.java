@@ -1,4 +1,4 @@
-import ProductsReader.ReaderManager;
+package ProductsReader;
 
 public class Main {
 
