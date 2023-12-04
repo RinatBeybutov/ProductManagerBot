@@ -1,18 +1,12 @@
 package com.customBot.v1.service;
 
-import ProductsReader.ReaderManager;
 import com.customBot.v1.config.BotConfig;
-import com.customBot.v1.database.BotStorage;
-import java.io.FileNotFoundException;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -21,10 +15,20 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 @Slf4j
 public class TelegramBot extends TelegramLongPollingBot {
 
-  private BotStorage storage = BotStorage.getInstance();
-
   private final BotConfig botConfig;
 
+  private final MessageCreator messageCreator;
+
+  /*private static final String START_COMMAND = "/start";
+  private static final String GET_ALL_PRODUCTS_LIST_COMMAND = "/products";
+  private static final String GET_TOP5_EXPENSIVE_PRODUCTS_COMMAND = "/top5";
+  private static final String GET_TOTAL_CHECKS_PRICES_COMMAND = "/totalchecks";
+  private static final String GET_CHECK_FOR_VIEW_COMMAND = "/check";
+  private static final String ADD_CHECK_COMMAND = "/addCheck";
+  private static final String GET_CHECK_FOR_DELETE_COMMAND = "/delete1";
+  private static final String DELETE_NOTE_COMMAND = "/delete2";
+  private static final String GET_NOTE_COMMAND = "/note";
+  private static final String ADD_NOTE_COMMAND = "/addNote";*/
 
   @Override
   public String getBotUsername() {
@@ -38,87 +42,101 @@ public class TelegramBot extends TelegramLongPollingBot {
 
   @Override
   public void onUpdateReceived(Update update) {
-    if(update.hasMessage() && update.getMessage().hasText()) {
-      String messageText = update.getMessage().getText();
-      Long chatId = update.getMessage().getChatId();
-
-      String username = update.getMessage().getChat().getFirstName();
-
-      log.info(String.format("User with name = %s and chatId = %s sent command - %s",
-          username, chatId, messageText));
-
-      switch (messageText) {
-        case "/start":
-          startCommand(chatId, username);
-          break;
-        case "/products":
-          getProductsCommand(chatId);
-          break;
-        case "/top5":
-          getTop5ProductsCommand(chatId);
-            break;
-        case "/checks":
-          getChecksCommand(chatId);
-          break;
-        default:
-          sendMessage(chatId, "Команда пока не поддерживается");
-      }
+    if (update.hasMessage() && update.getMessage().hasText()) {
+      processTextMessage(update);
+    } else if (update.hasCallbackQuery()) {
+      processCallBackQuery(update);
     }
   }
 
-  private void getChecksCommand(Long chatId) {
-    try {
-      List<Entry<String, Integer>> checkToTotalCost = storage.getCheckToTotalCost(chatId);
-      String answer = checkToTotalCost.stream()
-          .sorted(Comparator.comparing(Entry::getKey))
-          .map(entry -> entry.getKey() + "  -  " + entry.getValue() + "\n")
-          .collect(Collectors.joining());
-      sendMessage(chatId, answer);
-    } catch (FileNotFoundException e) {
-      sendMessage(chatId, "База данных отвечает, что у нее нет твоих данных ;(");
+  private void processTextMessage(Update update) {
+    Message receivedMessage = update.getMessage();
+    String messageText = receivedMessage.getText();
+    Long chatId = receivedMessage.getChatId();
+    String username = receivedMessage.getChat().getFirstName();
+    Command command = getCommand(messageText);
+
+    log.info(String.format("User with name = %s and chatId = %s sent command - %s",
+        username, chatId, command));
+
+    switch (command) {
+      case START_COMMAND:
+        createAndSendMessage(chatId, messageCreator.createGreetingAnswer(username));
+        break;
+      case GET_ALL_PRODUCTS_LIST_COMMAND:
+        createAndSendMessage(chatId, messageCreator.createAllProductsAnswer(chatId));
+        break;
+      case GET_TOP5_EXPENSIVE_PRODUCTS_COMMAND:
+        createAndSendMessage(chatId, messageCreator.createTop5ProductsAnswer(chatId));
+        break;
+      case GET_TOTAL_CHECKS_PRICES_COMMAND:
+        createAndSendMessage(chatId, messageCreator.createAllChecksAnswer(chatId));
+        break;
+      case GET_CHECK_FOR_VIEW_COMMAND:
+        SendMessage message = messageCreator.createChecksListMessage(chatId, ":get", "Список чеков");
+        sendMessage(message);
+        break;
+      case ADD_CHECK_COMMAND:
+        createAndSendMessage(chatId, messageCreator.createAddingCheckAnswer(chatId, messageText));
+        break;
+      case GET_CHECK_FOR_DELETE_COMMAND:
+        message = messageCreator.createChecksListMessage(chatId, ":delete", "Удалить чек");
+        sendMessage(message);
+        break;
+      case DELETE_NOTE_COMMAND:
+        createAndSendMessage(chatId, messageCreator.createDeleteNoteAnswer(chatId));
+        break;
+      case GET_NOTE_COMMAND:
+        createAndSendMessage(chatId, messageCreator.createGetNoteAnswer(chatId));
+        break;
+      case ADD_NOTE_COMMAND:
+        createAndSendMessage(chatId, messageCreator.createSaveNoteAnswer(chatId, messageText));
+        break;
+      default:
+        createAndSendMessage(chatId, "Такая команда не поддерживается, попробуй /start");
     }
   }
 
-  private void getTop5ProductsCommand(Long chatId) {
-    try {
-      String answer = storage.getTop5Products(chatId).stream()
-          .map(entry -> String.format("%s - %s шт, всего - %s руб",
-              entry.getKey(), entry.getValue().getCount(), entry.getValue().getTotalCost()))
-          .collect(Collectors.joining("\n"));
-      sendMessage(chatId, answer);
-    } catch (FileNotFoundException e) {
-      sendMessage(chatId, "База данных отвечает, что у нее нет твоих данных ;(");
+  private void processCallBackQuery(Update update) {
+    String callData = update.getCallbackQuery().getData();
+    String[] callDataItems = callData.split(":");
+    String date = callDataItems[0];
+    String command = callDataItems[1];
+    Long chatId = update.getCallbackQuery().getMessage().getChatId();
+    if(command.equals("get")) {
+      createAndSendMessage(chatId, messageCreator.getCheckAnswer(chatId, date));
+    }
+    if(command.equals("delete")) {
+      createAndSendMessage(chatId, messageCreator.createDeleteCheckMessage(chatId, date));
     }
   }
 
-  private void getProductsCommand(Long chatId) {
-    try {
-      String answer = storage.getSortedProducts(chatId).stream()
-          .map(entry -> String.format("%s - %s шт, всего - %s руб",
-              entry.getKey(), entry.getValue().getCount(), entry.getValue().getTotalCost()))
-          .collect(Collectors.joining("\n"));
-      String totalCost = String.format("\nОбщая стоимость - %s руб\n", storage.getTotalCost(chatId));
-      sendMessage(chatId, answer + totalCost);
-    } catch (FileNotFoundException e) {
-      sendMessage(chatId, "База данных отвечает, что у нее нет твоих данных ;(");
+  private Command getCommand(String messageText) {
+    if (messageText.startsWith("Чек")) {
+      return Command.ADD_CHECK_COMMAND;
+    } else if (messageText.startsWith("Заметка")) {
+      return Command.ADD_NOTE_COMMAND;
     }
+    return Command.getCommandByTextCommand(messageText);
   }
 
-  private void startCommand(Long chatId, String name) {
-    ReaderManager manager = new ReaderManager(botConfig.getFilesPath());
-    storage.addMapChecks(chatId, manager.getChecksMap());
-    sendMessage(chatId, "Я закинул в базу инфу из файлов, " + name + " :)");
-  }
-
-  private void sendMessage(Long chatId, String text) {
-    SendMessage m = new SendMessage();
-    m.setChatId(String.valueOf(chatId));
-    m.setText(text);
-
+  private void sendMessage(SendMessage message) {
     try {
-      execute(m);
+      execute(message);
     } catch (TelegramApiException e) {
-      System.out.println("Error while sendind message " + m);
+      System.out.println("Error while sending message " + message);
+    }
+  }
+
+  private void createAndSendMessage(Long chatId, String text) {
+    SendMessage message = SendMessage.builder()
+        .chatId(String.valueOf(chatId))
+        .text(text)
+        .build();
+    try {
+      execute(message);
+    } catch (TelegramApiException e) {
+      System.out.println("Error while sending message " + message);
     }
   }
 }

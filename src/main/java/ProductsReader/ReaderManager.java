@@ -5,10 +5,12 @@ import ProductsReader.Printer.FilePrinter;
 import ProductsReader.Printer.Printer;
 import ProductsReader.Reader.CustomFileReader;
 import ProductsReader.Reader.Reader;
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 public class ReaderManager {
   private static final long COUNT_TOP_PRICE_LIMIT = 5;
@@ -16,11 +18,13 @@ public class ReaderManager {
   private Reader reader;
   private Printer printer;
   private Storage storage = Storage.getInstance();
+  private final String rootPath;
 
   public ReaderManager(String path) {
     reader = new CustomFileReader(path);
     //printer = new ConsolePrinter();
     printer = new FilePrinter(path);
+    rootPath = path;
   }
 
   public void start() {
@@ -41,6 +45,7 @@ public class ReaderManager {
   }
 
   private void printResults(List<Entry<String, ProductInfo>> sortedProducts, int totalCost) {
+    printer.init();
     printer.print(DELIMITER_STRING);
     int counter = 1;
     for(Entry<String, ProductInfo> entry : sortedProducts) {
@@ -56,5 +61,15 @@ public class ReaderManager {
         .limit(COUNT_TOP_PRICE_LIMIT)
         .forEach(entry -> printer.print(String.format("%s - %s\n", entry.getKey(), entry.getValue().getTotalCost())));
     System.out.println("Результаты записаны!");
+  }
+
+  public void saveCheck(String fileName, List<String> lines) {
+    printer.print(fileName, lines.stream().collect(Collectors.joining("\n")));
+  }
+
+  public void deleteFile(String date) {
+    String filePath = rootPath + "/" + date + ".txt";
+    File file = new File(filePath);
+    file.delete();
   }
 }

@@ -35,7 +35,7 @@ public class CustomFileReader implements Reader{
   private void readFile(String filePath, String fileName) throws IOException {
     try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
       List<String> fileLines = reader.lines().toList();
-      storage.addCheckItem(fileName, fileLines);
+      storage.addCheckItem(fileName.substring(0, fileName.lastIndexOf(".")), fileLines);
       fileLines.forEach(this::parseLine);
     }
   }
