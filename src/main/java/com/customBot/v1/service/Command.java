@@ -4,7 +4,6 @@ public enum Command {
   START_COMMAND("/start"),
   GET_ALL_PRODUCTS_LIST_COMMAND("/products"),
   GET_TOP5_EXPENSIVE_PRODUCTS_COMMAND("/top5"),
-  GET_TOTAL_CHECKS_PRICES_COMMAND("/totalchecks"),
   GET_CHECK_FOR_VIEW_COMMAND("/check"),
   ADD_CHECK_COMMAND("/addCheck"),
   GET_CHECK_FOR_DELETE_COMMAND("/delete1"),

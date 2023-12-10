@@ -19,17 +19,6 @@ public class TelegramBot extends TelegramLongPollingBot {
 
   private final MessageCreator messageCreator;
 
-  /*private static final String START_COMMAND = "/start";
-  private static final String GET_ALL_PRODUCTS_LIST_COMMAND = "/products";
-  private static final String GET_TOP5_EXPENSIVE_PRODUCTS_COMMAND = "/top5";
-  private static final String GET_TOTAL_CHECKS_PRICES_COMMAND = "/totalchecks";
-  private static final String GET_CHECK_FOR_VIEW_COMMAND = "/check";
-  private static final String ADD_CHECK_COMMAND = "/addCheck";
-  private static final String GET_CHECK_FOR_DELETE_COMMAND = "/delete1";
-  private static final String DELETE_NOTE_COMMAND = "/delete2";
-  private static final String GET_NOTE_COMMAND = "/note";
-  private static final String ADD_NOTE_COMMAND = "/addNote";*/
-
   @Override
   public String getBotUsername() {
     return botConfig.getBotName();
@@ -68,9 +57,6 @@ public class TelegramBot extends TelegramLongPollingBot {
         break;
       case GET_TOP5_EXPENSIVE_PRODUCTS_COMMAND:
         createAndSendMessage(chatId, messageCreator.createTop5ProductsAnswer(chatId));
-        break;
-      case GET_TOTAL_CHECKS_PRICES_COMMAND:
-        createAndSendMessage(chatId, messageCreator.createAllChecksAnswer(chatId));
         break;
       case GET_CHECK_FOR_VIEW_COMMAND:
         SendMessage message = messageCreator.createChecksListMessage(chatId, ":get", "Список чеков");

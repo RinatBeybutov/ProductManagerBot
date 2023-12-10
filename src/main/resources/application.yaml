@@ -1,6 +1,22 @@
 bot:
-  name: ****
-  token: ****
+  name: ProductCounterBot
+  token: 6195052451:AAGOOzj1RLoPH1QWyQvs2F3gos598KAyi_8
 
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/telegramBot
+    username: root
+    password: root
+    driver-class-name: org.postgresql.Driver
+    initialization-mode: ALWAYS
+    schema: classpath*:database/schema.sql
+  jpa:
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQL10Dialect
+    hibernate:
+      ddl-auto: update
+
+#  spring.datasource.initialization-mode=ALWAYS
+#  spring.datasource.schema=classpath*:database/initDB.sql
 #files:
 #  path: C://Users//Админ/Desktop/Чеки продукты

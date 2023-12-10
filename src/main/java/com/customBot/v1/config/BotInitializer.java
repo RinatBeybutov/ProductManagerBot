@@ -1,4 +1,4 @@
-package com.customBot.v1;
+package com.customBot.v1.config;
 
 import com.customBot.v1.service.TelegramBot;
 import org.springframework.beans.factory.annotation.Autowired;
